@@ -3,13 +3,16 @@ from .base import FunctionalTest
 
 class ItemValidationTest(FunctionalTest):
 
+    def get_error_element(self):
+        return self.browser.find_element_by_css_selector('.has-error')
+
     def test_cannot_add_empty_list_items(self):
         # User goes to homepage and enters empty list item
         self.browser.get(self.server_url)
         self.get_item_input_box().send_keys('\n')
 
         # Page refreshes with error message
-        error = self.browser.find_element_by_css_selector('.has-error')
+        error = self.get_error_element()
         self.assertEqual(error.text, "You can't have an empty list item")
 
         # Tries again with text
@@ -21,7 +24,7 @@ class ItemValidationTest(FunctionalTest):
 
         # Similar error occurs
         self.check_for_row_in_list_table('1: Buy milk')
-        error = self.browser.find_element_by_css_selector('.has-error')
+        error = self.get_error_element()
         self.assertEqual(error.text, "You can't have an empty list item")
 
         # Corrects by inputing some text
@@ -40,6 +43,20 @@ class ItemValidationTest(FunctionalTest):
        
         # Error messages appears
         self.check_for_row_in_list_table('1: Buy wellies')
-        error = self.browser.find_element_by_css_selector('.has-error')
+        error = self.get_error_element()
         self.assertEqual(error.text, "You've already got this in your list")
+
+    def test_error_messages_are_cleared_on_input(self):
+        # User starts new list
+        self.browser.get(self.server_url)
+        self.get_item_input_box().send_keys('\n')
+        error = self.get_error_element()
+        self.assertTrue(error.is_displayed())
+
+        # User starts typing
+        self.get_item_input_box().send_keys('a')
+
+        # Error goes
+        error = self.get_error_element()
+        self.assertFalse(error.is_displayed())
          
